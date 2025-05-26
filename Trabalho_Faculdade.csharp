@@ -1,0 +1,80 @@
+using System;
+using Npgsql;
+
+public class ClienteRepository
+{
+    private readonly string _connectionString = "Host=localhost;Port=5432;Username=root;Password=123;Database=BancoTrabalho";
+
+    public void CriarCliente(string nome, string email)
+    {
+        try
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            const string sql = "INSERT INTO cliente (nome, email) VALUES (@nome, @email)";
+            using var cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("nome", nome);
+            cmd.Parameters.AddWithValue("email", email);
+            cmd.ExecuteNonQuery();
+
+            Console.WriteLine("✅ Cliente criado com sucesso! 😎");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erro ao criar cliente: {ex.Message}");
+        }
+    }
+
+    public void ObterClientePorId(int id)
+    {
+        try
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            const string sql = "SELECT id, nome, email FROM cliente WHERE id = @id";
+            using var cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("id", id);
+
+            using var reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                Console.WriteLine($"🔍 ID: {reader["id"]}, Nome: {reader["nome"]}, Email: {reader["email"]}");
+            }
+            else
+            {
+                Console.WriteLine("⚠️ Cliente não encontrado 🫠");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erro ao obter cliente: {ex.Message}");
+        }
+    }
+
+    public void AtualizarCliente(int id, string novoNome, string novoEmail)
+    {
+        try
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            const string sql = "UPDATE cliente SET nome = @nome, email = @email WHERE id = @id";
+            using var cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("id", id);
+            cmd.Parameters.AddWithValue("nome", novoNome);
+            cmd.Parameters.AddWithValue("email", novoEmail);
+
+            int rowsAffected = cmd.ExecuteNonQuery();
+            if (rowsAffected > 0)
+                Console.WriteLine("✅ Cliente atualizado com sucesso! 🔧");
+            else
+                Console.WriteLine("⚠️ Cliente não encontrado pra atualizar 🧟‍♂️");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Erro ao atualizar cliente: {ex.Message}");
+        }
+    }
+}
